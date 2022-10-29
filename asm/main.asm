@@ -8,12 +8,16 @@ section .text
 
 global _start
 
+extern print
+extern print_num
+extern XOpenDisplay
+
 _start:
-    mov rax, 0x1
-    mov rdi, 0x1;
-    lea rsi, [hello_world]
-    mov rdx, 0xc
-    syscall
+    lea rdi, [hello_world]
+    call print
+
+    mov rdi, 0xabc
+    call print_num
 
     mov rax, 0x3c
     mov rdi, 0x0

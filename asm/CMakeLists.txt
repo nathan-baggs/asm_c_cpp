@@ -2,7 +2,10 @@ enable_language(ASM_NASM)
 set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
 set(CMAKE_ASM_NASM_LINK_EXECUTABLE "ld <CMAKE_ASM_NASM_LINK_FLAGS> <LINK_FLAGS> <OBJECTS>  -o <TARGET> <LINK_LIBRARIES>")
 
-set(SOURCE_FILES main.asm)
+set(SOURCE_FILES
+    main.asm
+    utils.asm
+)
 set_source_files_properties(${SOURCE_FILES} PROPERTIES LANGUAGE ASM_NASM)
 
 add_executable(asm_game
