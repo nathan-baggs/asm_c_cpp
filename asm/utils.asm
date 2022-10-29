@@ -1,5 +1,7 @@
 global print
 global print_num
+global assert_not_null
+global exit
 
 ; print a string to STDOUT
 ; @param rdi
@@ -8,6 +10,9 @@ global print_num
 ; @return
 ;   Number of bytes output
 print:
+    push rbp
+    mov rbp, rsp
+
     mov r10, rdi ; save off string address
     mov r9, rdi ; iterator register for string
     movzx rax, byte [r9] ; load first byte
@@ -30,6 +35,7 @@ count_null_end:
     mov rdx, rcx
     syscall
 
+    pop rbp
     ret
 
 ; print an integer to STDOUT (with a new line)
@@ -95,3 +101,35 @@ reverse_loop_end:
 
     leave
     ret
+
+
+; assert the input is not null
+; @param rdi
+;   Value to check is not null
+;
+; @param rsi
+;   Pointer to error message string
+assert_not_null:
+    push rbp
+    mov rbp, rsp
+
+    cmp rdi, 0x0
+    jne assert_not_null_end
+
+    mov rdi, rsi
+    call print
+
+    mov rdi, 0x1
+    call exit
+
+assert_not_null_end:
+
+    pop rbp
+    ret
+
+; exit the program
+; @param rdi
+;   Exit code
+exit:
+    mov rax, 0x3c
+    syscall

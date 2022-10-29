@@ -6,7 +6,7 @@ project(
   DESCRIPTION "A game made in three languages"
   LANGUAGES ASM C CXX)
 
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+#set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 add_subdirectory(asm)
 add_subdirectory(c)

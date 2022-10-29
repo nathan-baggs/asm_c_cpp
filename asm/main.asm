@@ -10,18 +10,27 @@ global _start
 
 extern print
 extern print_num
+extern assert_not_null
+extern exit
 extern XOpenDisplay
 
 _start:
     lea rdi, [hello_world]
     call print
 
-    mov rdi, 0xabc
-    call print_num
-
-    mov rax, 0x3c
     mov rdi, 0x0
-    syscall
+    call XOpenDisplay
+    mov rdi, rax
+    lea rsi, [x_open_display_failed]
+    call assert_not_null
+        
+    lea rdi, [goodbye]
+    call print
+
+    mov rdi, 0x0
+    call exit
 
 section .rodata
-    hello_world: db "hello world",0xa
+    hello_world: db "hello world", 0xa, 0x0
+    goodbye: db "goodbye", 0xa, 0x0
+    x_open_display_failed: db "XOpenDisplay failed", 0xa, 0x0
