@@ -1,8 +1,9 @@
-global print
-global print_num
 global assert_not_null
 global assert_null
 global exit
+global print
+global print_num
+global sleep_ms
 
 ; print a string to STDOUT
 ; @param rdi
@@ -158,3 +159,28 @@ assert_null_end:
 exit:
     mov rax, 0x3c
     syscall
+
+; sleep the current process for the supplied number of milliseconds
+; @param rdi
+;   Number of milliseconds to sleep fpr
+sleep_ms:
+    push rbp
+    mov rbp, rsp
+
+    imul rdi, rdi, 1000000 ; convert supplied ms to ns
+    xor rax, rax 
+    ; recreate struct timepec on the stack
+    push rax ; tv_sec
+    push rdi ; tv_nsec
+
+    ; nanosleep syscall
+    mov rax, 162
+    mov rdi, rsp
+    mov rsi, 0x0
+    syscall
+
+    add rsp, 16
+
+    pop rbp
+    ret
+
