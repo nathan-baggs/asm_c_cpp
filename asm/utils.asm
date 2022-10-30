@@ -1,6 +1,7 @@
 global print
 global print_num
 global assert_not_null
+global assert_null
 global exit
 
 ; print a string to STDOUT
@@ -123,6 +124,30 @@ assert_not_null:
     call exit
 
 assert_not_null_end:
+
+    pop rbp
+    ret
+
+; assert the input is null
+; @param rdi
+;   Value to check is null
+;
+; @param rsi
+;   Pointer to error message string
+assert_null:
+    push rbp
+    mov rbp, rsp
+
+    cmp rdi, 0x0
+    je assert_null_end
+
+    mov rdi, rsi
+    call print
+
+    mov rdi, 0x1
+    call exit
+
+assert_null_end:
 
     pop rbp
     ret
