@@ -20,6 +20,7 @@ extern XFlush
 extern XLookupKeysym
 extern XMapWindow
 extern XNextEvent
+extern XSync
 extern XOpenDisplay
 extern XSelectInput
 extern XSetForeground
@@ -28,6 +29,7 @@ extern XWhitePixel
 extern assert_not_null
 extern assert_null
 extern exit
+extern get_time
 extern print
 extern print_num
 extern sleep_ms
@@ -81,7 +83,7 @@ _start:
 
     mov rdi, [display]
     mov rsi, [window]
-    mov rdx, 0x20002
+    mov rdx, 0x20003
     call XSelectInput
 
     mov rdi, [display]
@@ -108,12 +110,15 @@ wait_loop_start:
     jmp wait_loop_start
 wait_loop_end:
 
-
 main_loop_start:
+    ; get time at start of frame
+    call get_time
+    mov [frame_time], rax
+
     ; see if we want have events
     mov rdi, [display]
     mov rsi, [window]
-    mov rdx, 0x02
+    mov rdx, 0x03
     lea rcx, [event]
     call XCheckWindowEvent
 
@@ -121,30 +126,84 @@ main_loop_start:
     cmp rax, 0x0
     je game_logic
 
+    ; check if its a press event
+    mov eax, [event]
+    cmp rax, 0x2
+    je handle_key
+
     ; check if its a release event
     mov eax, [event]
     cmp rax, 0x3
     jne game_logic ; if not go to game logic
 
+handle_key:
     ; get the key code for the release event
     lea rdi, [event]
     mov rsi, 0x0
     call XLookupKeysym
 
-    ; if it's a XK_q then quit
-    cmp rax, 0x71
+    ; see if its an XK_Escape
+    cmp rax, 0xff1b
+    jne handle_arrow_key
+
+    ; if its key press then exit the game
+    mov eax, [event]
+    cmp rax, 0x2
     je main_loop_end
 
-    ; if it's not an XK_Right then go to game logic
+handle_arrow_key:
+    ; if it's not an XK_Right then check if its an XK_Left
     cmp rax, 0xff53
+    jne left_check
+
+    mov eax, [event]
+    cmp rax, 0x2
+    jne right_release
+
+    mov rax, 0x1
+    mov [right_arrow_status], rax
+    jmp game_logic
+
+right_release:
+    mov rax, 0x0
+    mov [right_arrow_status], rax
+    jmp game_logic
+
+left_check:
+    ; if its not an XK_Left then go to game logic
+    cmp rax, 0xff51
     jne game_logic
 
-    ; right arrow was releases so move paddle to the right
+    mov eax, [event]
+    cmp rax, 0x2
+    jne left_release
+
+    mov rax, 0x1
+    mov [left_arrow_status], rax
+    jmp game_logic
+
+left_release:
+    mov rax, 0x0
+    mov [left_arrow_status], rax
+
+game_logic:
+    mov rax, [right_arrow_status]
+    cmp rax, 0x0
+    je right_arrow_update_finish
+
     mov rax, [paddle_x]
     add rax, 10
     mov [paddle_x], rax
+right_arrow_update_finish:
 
-game_logic:
+    mov rax, [left_arrow_status]
+    cmp rax, 0x0
+    je left_arrow_update_finish
+
+    mov rax, [paddle_x]
+    sub rax, 10
+    mov [paddle_x], rax
+left_arrow_update_finish:
 
     ; clear window
     mov rdi, [display]
@@ -173,8 +232,25 @@ game_logic:
     mov rdi, [display]
     call XFlush
 
-    ; sleep for short time to prevent screen tearing
-    mov rdi, 33
+    ; sync commands with server
+    mov rdi, [display]
+    mov rsi, 0
+    call XSync
+
+    ; get end frame time
+    call get_time
+    
+    ; see if we have spent less than 30ms in this frame
+    mov rbx, [frame_time]
+    sub rax, rbx
+    cmp rax, 30
+
+    jg main_loop_start
+
+    ; sleep for remainder of 30ms
+    mov rbx, 30
+    sub rbx, rax
+    mov rdi, rbx
     call sleep_ms
         
     jmp main_loop_start
@@ -199,10 +275,14 @@ section .data
     paddle_height: dq 0x14
     paddle_x: dq 0x12c
     paddle_y: dq 0x30c
+    left_arrow_status: dq 0x0
+    right_arrow_status: dq 0x0
+    frame_time: dq 0x0
 
 section .rodata
     hello_world: db "hello world", 0xa, 0x0
     goodbye: db "goodbye", 0xa, 0x0
+    sleep_for: db "sleep_for: ", 0x0
     x_open_display_failed: db "XOpenDisplay failed", 0xa, 0x0
     x_select_input_failed: db "XSelectInput failed", 0xa, 0x0
     x_set_foreground_failed: db "XSetForeground failed", 0xa, 0x0

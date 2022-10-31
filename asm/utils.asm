@@ -1,6 +1,13 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;         Distributed under the Boost Software License, Version 1.0.         ;;
+;;            (See accompanying file LICENSE or copy at                       ;;
+;;                 https://www.boost.org/LICENSE_1_0.txt)                     ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 global assert_not_null
 global assert_null
 global exit
+global get_time
 global print
 global print_num
 global sleep_ms
@@ -170,11 +177,11 @@ sleep_ms:
     imul rdi, rdi, 1000000 ; convert supplied ms to ns
     xor rax, rax 
     ; recreate struct timepec on the stack
-    push rax ; tv_sec
     push rdi ; tv_nsec
+    push rax ; tv_sec
 
     ; nanosleep syscall
-    mov rax, 162
+    mov rax, 0x23
     mov rdi, rsp
     mov rsi, 0x0
     syscall
@@ -184,3 +191,31 @@ sleep_ms:
     pop rbp
     ret
 
+; get the time since epoch in milliseconds
+; @returns
+;   Milliseconds since epoch
+get_time:
+    push rbp
+    mov rbp, rsp
+
+    ; create empty timeval struct on the stack
+    push 0x0 ; tv_usec
+    push 0x0 ; tv_sec
+
+    ; gettimeofday syscall
+    mov rax, 0x60
+    mov rdi, rsp
+    mov rsi, 0x0
+    syscall
+
+    pop rax ; seconds
+    pop rbx ; microseconds
+
+    imul rax, rax, 1000000 ; convert seconds to microseconds
+    add rax, rbx ; add microseconds
+    mov rdx, 0x0
+    mov rbx, 1000
+    div rbx ; convert to milliseconds
+
+    pop rbp
+    ret
