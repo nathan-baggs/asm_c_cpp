@@ -4,6 +4,7 @@ set(CMAKE_ASM_NASM_LINK_EXECUTABLE "ld <CMAKE_ASM_NASM_LINK_FLAGS> <LINK_FLAGS> 
 set(CMAKE_ASM_NASM_FLAGS_DEBUG "-g -Fdwarf")
 
 set(SOURCE_FILES
+    graphics.asm
     main.asm
     utils.asm
 )
