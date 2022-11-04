@@ -130,10 +130,18 @@ left_arrow_update_finish:
 
     call render_begin
 
+    call ball_update
+
     mov rdi, [paddle_x]
     mov rsi, [paddle_y]
     mov rdx, [paddle_width]
     mov rcx, [paddle_width]
+    call draw_rectangle
+
+    mov rdi, [ball_x]
+    mov rsi, [ball_y]
+    mov rdx, [ball_width]
+    mov rcx, [ball_width]
     call draw_rectangle
 
     call render_end
@@ -163,11 +171,50 @@ main_loop_end:
     mov rdi, 0x0
     call exit
 
+; Perform ball update logic
+ball_update:
+    push rbp
+    mov rbp, rsp
+
+    ; add y velocity to ball
+    mov rax, [ball_y]
+    add rax, [ball_velocity_y]
+    mov [ball_y], rax
+
+    ; check if ball has gone off the bottom of the screen
+    mov rax, [ball_y]
+    cmp rax, 0x320
+    jl ball_update_y_min_check
+
+    ; invert y velocity
+    mov rax, 0xfffffffffffffff6
+    mov [ball_velocity_y], rax
+    jmp ball_update_end
+
+ball_update_y_min_check:
+    ; check if ball has gone off the top of the screen
+    mov rax, [ball_y]
+    cmp rax, 0x0
+    jg ball_update_end
+
+    ; invert y velocity
+    mov rax, 0xa
+    mov [ball_velocity_y], rax
+
+ball_update_end:
+    pop rbp
+    ret
+
 section .data
     paddle_width: dq 0xc8
     paddle_height: dq 0x14
     paddle_x: dq 0x12c
     paddle_y: dq 0x30c
+    ball_width: dq 0xa
+    ball_height: dq 0xa
+    ball_x: dq 0x190
+    ball_y: dq 0x190
+    ball_velocity_y: dq 0xa
     left_arrow_status: dq 0x0
     right_arrow_status: dq 0x0
     frame_time: dq 0x0
