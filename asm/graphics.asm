@@ -1,7 +1,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;         Distributed under the Boost Software License, Version 1.0.         ;;
-;;            (See accompanying file LICENSE or copy at                       ;;
-;;                 https://www.boost.org/LICENSE_1_0.txt)                     ;;
+;;         Distributed under the Boost Software License, Version 1.0.          ;;
+;;            (See accompanying file LICENSE or copy at                        ;;
+;;                 https://www.boost.org/LICENSE_1_0.txt)                      ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 global create_window
@@ -33,7 +33,13 @@ extern render_end
 extern print
 extern print_num
 
-; create an X Window
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; This file contains functions for creating a window and rendering to it.
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Create and display an X Window.
+;
 create_window:
     push rbp
     mov rbp, rsp
@@ -49,8 +55,6 @@ create_window:
 
     call XDefaultScreen
     mov [screen_number], rax
-    mov rdi, rax
-    call print_num
 
     mov rdi, [display]
     mov rsi, [screen_number]
@@ -112,9 +116,12 @@ wait_loop_end:
     pop rbp
     ret
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Try and get an event
-; returns
-;   A pointer to an event, or 0x0 if no event was available
+;
+; @returns
+;   Address of an event, or 0x0 if no event was available.
+;
 try_get_event:
     push rbp
     mov rbp, rsp
@@ -149,7 +156,9 @@ render_begin:
     pop rbp
     ret
 
-; Draw a rectangle
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Draw a rectangle.
+;
 ; @param rdi
 ;   X coord of rectangle
 ;
@@ -161,6 +170,7 @@ render_begin:
 ;
 ; @param rcx
 ;   Height of rectangle
+;
 draw_rectangle:
     push rbp
     mov rbp, rsp
@@ -190,7 +200,9 @@ draw_rectangle:
     pop rbp
     ret
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Perform post-render tasks
+;
 render_end:
     push rbp
     mov rbp, rsp

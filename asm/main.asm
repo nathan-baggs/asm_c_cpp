@@ -1,7 +1,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;         Distributed under the Boost Software License, Version 1.0.         ;;
-;;            (See accompanying file LICENSE or copy at                       ;;
-;;                 https://www.boost.org/LICENSE_1_0.txt)                     ;;
+;;         Distributed under the Boost Software License, Version 1.0.          ;;
+;;            (See accompanying file LICENSE or copy at                        ;;
+;;                 https://www.boost.org/LICENSE_1_0.txt)                      ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 section .text
@@ -20,21 +20,30 @@ extern XWhitePixel
 extern assert_not_null
 extern assert_null
 extern create_window
-extern try_get_event
-extern render_begin
-extern render_end
 extern draw_rectangle
 extern exit
 extern get_time
+extern linked_list_init
+extern linked_list_iterator
+extern linked_list_iterator_advance
+extern linked_list_iterator_value
+extern linked_list_push_back
 extern print
 extern print_num
+extern render_begin
+extern render_end
 extern sleep_ms
+extern try_get_event
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Entry point to the program
+;
 _start:
 
     lea rdi, [hello_world]
     call print
 
+    call create_entities
     call create_window
 
 main_loop_start:
@@ -128,23 +137,8 @@ right_arrow_update_finish:
     mov [paddle_x], rax
 left_arrow_update_finish:
 
-    call render_begin
-
     call ball_update
-
-    mov rdi, [paddle_x]
-    mov rsi, [paddle_y]
-    mov rdx, [paddle_width]
-    mov rcx, [paddle_width]
-    call draw_rectangle
-
-    mov rdi, [ball_x]
-    mov rsi, [ball_y]
-    mov rdx, [ball_width]
-    mov rcx, [ball_width]
-    call draw_rectangle
-
-    call render_end
+    call render
     
     ; get end frame time
     call get_time
@@ -171,7 +165,48 @@ main_loop_end:
     mov rdi, 0x0
     call exit
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Render the entity list.
+;
+render:
+    push rbp
+    mov rbp, rsp
+
+    call render_begin
+
+    mov rdi, [entity_list]
+    call linked_list_iterator
+    push rax
+
+render_loop_start:
+    mov rax, [rsp]
+    cmp rax, 0x0
+    je render_loop_end
+
+    mov rdi, [rsp]
+    call linked_list_iterator_value
+
+    mov rdi, [rax]
+    mov rsi, [rax + 8]
+    mov rdx, [rax + 16]
+    mov rcx, [rax + 24]
+    call draw_rectangle
+
+    mov rdi, [rsp]
+    call linked_list_iterator_advance
+    mov [rsp], rax
+    jmp render_loop_start
+
+    call render_end
+render_loop_end:
+
+    add rsp, 0x8
+    pop rbp
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Perform ball update logic
+;
 ball_update:
     push rbp
     mov rbp, rsp
@@ -205,15 +240,37 @@ ball_update_end:
     pop rbp
     ret
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Create all the entities for the game and insert them into a linked list.
+;
+create_entities:
+    push rbp
+    mov rbp, rsp
+
+    call linked_list_init
+    mov [entity_list], rax
+
+    mov rdi, [entity_list]
+    lea rsi, [paddle_x] ; store address of paddle data in list
+    call linked_list_push_back
+
+    mov rdi, [entity_list]
+    lea rsi, [ball_x] ; store address of ball in list
+    call linked_list_push_back
+
+    pop rbp
+    ret
+
 section .data
-    paddle_width: dq 0xc8
-    paddle_height: dq 0x14
+    entity_list: dq 0x0
     paddle_x: dq 0x12c
     paddle_y: dq 0x30c
-    ball_width: dq 0xa
-    ball_height: dq 0xa
+    paddle_width: dq 0xc8
+    paddle_height: dq 0x14
     ball_x: dq 0x190
     ball_y: dq 0x190
+    ball_width: dq 0xa
+    ball_height: dq 0xa
     ball_velocity_y: dq 0xa
     left_arrow_status: dq 0x0
     right_arrow_status: dq 0x0

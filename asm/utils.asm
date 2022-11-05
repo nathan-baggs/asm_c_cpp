@@ -1,23 +1,31 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;         Distributed under the Boost Software License, Version 1.0.         ;;
-;;            (See accompanying file LICENSE or copy at                       ;;
-;;                 https://www.boost.org/LICENSE_1_0.txt)                     ;;
+;;         Distributed under the Boost Software License, Version 1.0.          ;;
+;;            (See accompanying file LICENSE or copy at                        ;;
+;;                 https://www.boost.org/LICENSE_1_0.txt)                      ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 global assert_not_null
 global assert_null
 global exit
+global game_malloc
+global game_mmap
 global get_time
 global print
 global print_num
 global sleep_ms
 
-; print a string to STDOUT
-; @param rdi
-;   Address of null terminated string to print
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; This file contains various utilities.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Print a string to STDOUT.
 ;
-; @return
-;   Number of bytes output
+; @param rdi
+;   Address of null terminated string to print.
+;
+; @returns
+;   Number of bytes output.
+;
 print:
     push rbp
     mov rbp, rsp
@@ -47,9 +55,12 @@ count_null_end:
     pop rbp
     ret
 
-; print an integer to STDOUT (with a new line)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Print an integer to STDOUT (with a new line).
+;
 ; @param rdi
-;   Unsigned number to print
+;   Unsigned number to print.
+;
 print_num:
     push rbp
     mov rbp, rsp
@@ -111,13 +122,15 @@ reverse_loop_end:
     leave
     ret
 
-
-; assert the input is not null
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Assert the input is not null.
+;
 ; @param rdi
-;   Value to check is not null
+;   Value to check is not null.
 ;
 ; @param rsi
-;   Pointer to error message string
+;   Pointer to error message string.
+;
 assert_not_null:
     push rbp
     mov rbp, rsp
@@ -136,12 +149,15 @@ assert_not_null_end:
     pop rbp
     ret
 
-; assert the input is null
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Assert the input is null.
+;
 ; @param rdi
-;   Value to check is null
+;   Value to check is null.
 ;
 ; @param rsi
-;   Pointer to error message string
+;   Pointer to error message string.
+;
 assert_null:
     push rbp
     mov rbp, rsp
@@ -160,16 +176,22 @@ assert_null_end:
     pop rbp
     ret
 
-; exit the program
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Exit the program.
+;
 ; @param rdi
-;   Exit code
+;   Exit code.
+;
 exit:
     mov rax, 0x3c
     syscall
 
-; sleep the current process for the supplied number of milliseconds
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Sleep the current process for the supplied number of milliseconds.
+;
 ; @param rdi
-;   Number of milliseconds to sleep fpr
+;   Number of milliseconds to sleep for.
+;
 sleep_ms:
     push rbp
     mov rbp, rsp
@@ -191,9 +213,12 @@ sleep_ms:
     pop rbp
     ret
 
-; get the time since epoch in milliseconds
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Get the time since epoch in milliseconds.
+;
 ; @returns
-;   Milliseconds since epoch
+;   Milliseconds since epoch.
+;
 get_time:
     push rbp
     mov rbp, rsp
