@@ -1,4 +1,5 @@
 add_executable(c_game
+    c_list.c
     c_rectangle.c
     c_vector2.c
     c_window.c
