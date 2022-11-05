@@ -7,6 +7,7 @@ set(SOURCE_FILES
     graphics.asm
     linked_list.asm
     main.asm
+    memory.asm
     utils.asm
 )
 set_source_files_properties(${SOURCE_FILES} PROPERTIES LANGUAGE ASM_NASM)
