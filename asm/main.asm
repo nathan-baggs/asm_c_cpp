@@ -28,6 +28,7 @@ extern linked_list_iterator
 extern linked_list_iterator_advance
 extern linked_list_iterator_value
 extern linked_list_push_back
+extern memory_malloc
 extern print
 extern print_num
 extern render_begin
@@ -258,6 +259,77 @@ create_entities:
     lea rsi, [ball_x] ; store address of ball in list
     call linked_list_push_back
 
+    mov rdi, 50
+    call create_brick_row
+    mov rdi, 80
+    call create_brick_row
+    mov rdi, 110
+    call create_brick_row
+    mov rdi, 140
+    call create_brick_row
+    mov rdi, 170
+    call create_brick_row
+    mov rdi, 200
+    call create_brick_row
+
+    pop rbp
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Adds a row of 10 bricks to the entity list
+;
+; @param rdi
+;   Y coord of row.
+;
+create_brick_row:
+    push rbp
+    mov rbp, rsp
+    sub rsp, 24
+
+    mov [rsp + 16], rdi
+
+    mov rax, 0
+    mov [rsp], rax ; store loop counter
+    mov rax, 20
+    mov [rsp + 8], rax ; store initial x coord
+
+create_row_start:
+
+    mov rax, [rsp]
+    cmp rax, 10
+    je create_row_end ; leave loop if we have added 10 bricks
+
+    mov rdi, 32
+    call memory_malloc
+
+    ; fill out entity struct
+    mov rbx, [rsp + 8]
+    mov [rax], rbx
+    mov rbx, [rsp + 16]
+    mov [rax + 8], rbx
+    mov rbx, 58
+    mov [rax + 16], rbx
+    mov rbx, 20
+    mov [rax + 24], rbx
+
+    mov rdi, [entity_list]
+    mov rsi, rax
+    call linked_list_push_back
+
+    ; advance x coord for next iteration
+    mov rax, [rsp + 8]
+    add rax, 78
+    mov [rsp + 8], rax
+
+    ; increment iteration count
+    mov rax, [rsp]
+    inc rax
+    mov [rsp], rax
+    jmp create_row_start
+
+create_row_end:
+
+    add rsp, 24
     pop rbp
     ret
 

@@ -211,11 +211,6 @@ render_end:
     mov rdi, [display]
     call XFlush
 
-    ; sync commands with server
-    mov rdi, [display]
-    mov rsi, 0
-    call XSync
-
     pop rbp
     ret
 
