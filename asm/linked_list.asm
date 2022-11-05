@@ -7,6 +7,7 @@
 global linked_list_init
 global linked_list_iterator
 global linked_list_iterator_advance
+global linked_list_iterator_remove
 global linked_list_iterator_value
 global linked_list_push_back
 
@@ -98,6 +99,40 @@ linked_list_iterator:
 
     pop rbp
     ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Remove a node from the linked list. 
+;
+; @param rdi
+;   Handle to linked list to remove node from.
+;
+; @parma rsi
+;   Iterator to remove
+; 
+linked_list_iterator_remove:
+    push rbp
+    mov rbp, rsp
+
+linked_list_remove_find_begin:
+    mov rax, [rdi + 8]
+    cmp rax, 0x0
+    je linked_list_remove_end
+
+    cmp rax, rsi
+    je linked_list_remove_find_end
+
+    mov rdi, rax
+    jmp linked_list_remove_find_begin
+
+linked_list_remove_find_end:
+
+    mov rbx, [rsi + 8] ; get next of node we are removing
+    mov [rdi + 8], rbx ; set prev nodes next to next of removing node
+
+linked_list_remove_end: 
+    pop rbp
+    ret
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Advance an iterator.
