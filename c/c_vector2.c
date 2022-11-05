@@ -9,7 +9,7 @@
 #include <assert.h>
 #include <stdio.h>
 
-C_Vector2 vector2_create()
+C_Vector2 c_vector2_create()
 {
     return c_vector2_create_xy(0.0f, 0.0f);
 }
