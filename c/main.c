@@ -7,9 +7,10 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-#include "SDL.h"
 #include "c_key_event.h"
+#include "c_list.h"
 #include "c_rectangle.h"
 #include "c_window.h"
 
