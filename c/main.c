@@ -6,6 +6,7 @@
 
 #include <assert.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -14,20 +15,127 @@
 #include "c_rectangle.h"
 #include "c_window.h"
 
+/**
+ * Struct encapsulating the data for a renderable entity.
+ */
+typedef struct Entity
+{
+    C_Rectangle rectangle;
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+} Entity;
+
+/**
+ * Helper macro for checking if a value is C_SUCCESS. If not it prints a supplied messaged and exits.
+ */
+#define CHECK_SUCCESS(X, MSG)                                                                                          \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        C_Result r = X;                                                                                                \
+        if (r != C_SUCCESS)                                                                                            \
+        {                                                                                                              \
+            printf("%s [error: %i]\n", MSG, r);                                                                        \
+            exit(1);                                                                                                   \
+        }                                                                                                              \
+    } while (false)
+
+/**
+ * Helper function to create a row of ten bricks.
+ *
+ * @param entities
+ *   List to store entities in.
+ *
+ * @param y
+ *   Y coordinate of row.
+ *
+ * @param r
+ *   Red component of brick colour.
+ *
+ * @param g
+ *   Green component of brick colour.
+ *
+ * @param b
+ *  Blue component of brick colour.
+ */
+static void create_brick_row(C_List *entities, float y, uint8_t r, uint8_t g, uint8_t b)
+{
+    float x = 20.0f;
+
+    for (int i = 0; i < 10; ++i)
+    {
+        Entity *e = (Entity *)calloc(sizeof(Entity), 1u);
+        e->rectangle.position.x = x;
+        e->rectangle.position.y = y;
+        e->rectangle.width = 58.0f;
+        e->rectangle.height = 20.0f;
+        e->r = r;
+        e->g = g;
+        e->b = b;
+
+        CHECK_SUCCESS(c_list_push_back_dtor(entities, e, &free), "failed to add brick");
+
+        x += 78.0f;
+    }
+}
+
+/**
+ * Helper function to update the ball.
+ *
+ * @param ball
+ *   Entity for ball.
+ *
+ * @param ball_velocity
+ *   Velocity of ball.
+ */
+static void update_ball(Entity *ball, C_Vector2 *ball_velocity)
+{
+    c_vector2_add(&ball->rectangle.position, ball_velocity);
+
+    // if ball does out of the screen then invert the y velocity
+    if ((ball->rectangle.position.y < 0.0f) || (ball->rectangle.position.y > 800.0f))
+    {
+        ball_velocity->y *= -1.0f;
+    }
+}
+
 int main()
 {
     printf("hello world\n");
 
+    Entity paddle = {
+        .rectangle = c_rectangle_create_xy(300.0f, 780.0f, 300.0f, 20.0f), .r = 0xff, .g = 0xff, .b = 0xff};
+    Entity ball = {.rectangle = c_rectangle_create_xy(400.0f, 400.0f, 10.0f, 10.0f), .r = 0xff, .g = 0xff, .b = 0xff};
+
+    C_Vector2 paddle_velocity = c_vector2_create();
+    C_Vector2 ball_velocity = c_vector2_create_xy(0.0f, 0.5f);
+
+    C_List *entities = NULL;
+    CHECK_SUCCESS(c_list_create(&entities), "failed to create entity list");
+
+    CHECK_SUCCESS(c_list_push_back(entities, &paddle), "failed to add paddle to list");
+    CHECK_SUCCESS(c_list_push_back(entities, &ball), "failed to add ball to list");
+
+    create_brick_row(entities, 50.0f, 0xff, 0x00, 0x00);
+    create_brick_row(entities, 80.0f, 0xff, 0x00, 0x00);
+    create_brick_row(entities, 110.0f, 0xff, 0xa5, 0x00);
+    create_brick_row(entities, 140.0f, 0xff, 0xa5, 0x00);
+    create_brick_row(entities, 170.0f, 0x00, 0xff, 0x00);
+    create_brick_row(entities, 200.0f, 0x00, 0xff, 0x00);
+
+    C_ListIter *iter = NULL;
+    CHECK_SUCCESS(c_list_iterator_create(entities, &iter), "failed to get entity iterator");
+
     // create window
     C_Window *window;
-    if (c_window_create(&window) != C_SUCCESS)
-    {
-        printf("failed to create window\n");
-        exit(1);
-    }
+    CHECK_SUCCESS(c_window_create(&window), "failed to create window");
 
     C_KeyEvent event;
     bool running = true;
+
+    const float paddle_speed = 1.0f;
+    bool left_press = false;
+    bool right_press = false;
 
     while (running)
     {
@@ -37,9 +145,17 @@ int main()
             C_Result event_result = c_window_get_event(window, &event);
             if (event_result == C_SUCCESS)
             {
-                if ((event.key_state == C_KEYSTATE_DOWN) && (event.key == C_KEY_Q))
+                if ((event.key_state == C_KEYSTATE_DOWN) && (event.key == C_KEY_ESCAPE))
                 {
                     running = false;
+                }
+                else if (event.key == C_KEY_LEFT)
+                {
+                    left_press = (event.key_state == C_KEYSTATE_DOWN) ? true : false;
+                }
+                else if (event.key == C_KEY_RIGHT)
+                {
+                    right_press = (event.key_state == C_KEYSTATE_DOWN) ? true : false;
                 }
             }
             else if (event_result == C_NO_MORE_EVENTS)
@@ -53,24 +169,42 @@ int main()
             }
         }
 
-        // render our scene
-
-        if (c_window_pre_render(window) != C_SUCCESS)
+        if ((left_press && right_press) || (!left_press && !right_press))
         {
-            printf("pre render failed\n");
-            exit(1);
+            paddle_velocity.x = 0.0f;
+        }
+        else if (left_press)
+        {
+            paddle_velocity.x = -paddle_speed;
+        }
+        else if (right_press)
+        {
+            paddle_velocity.x = paddle_speed;
         }
 
-        C_Rectangle paddle = c_rectangle_create_xy(300.0f, 780.0f, 300.0f, 20.0f);
-        if (c_window_draw_rectangle(window, &paddle, 0xff, 0xff, 0xff) != C_SUCCESS)
+        c_vector2_add(&paddle.rectangle.position, &paddle_velocity);
+        update_ball(&ball, &ball_velocity);
+
+        c_list_iterator_reset(entities, &iter);
+
+        // render our scene
+
+        CHECK_SUCCESS(c_window_pre_render(window), "pre render failed");
+
+        while (!c_list_iterator_at_end(iter))
         {
-            printf("failed to render\n");
-            exit(1);
+            Entity *entity = (Entity *)c_list_iterator_value(iter);
+            CHECK_SUCCESS(
+                c_window_draw_rectangle(window, &entity->rectangle, entity->r, entity->g, entity->b),
+                "failed to render entity");
+
+            c_list_iterator_advance(&iter);
         }
 
         c_window_post_render(window);
     }
 
+    c_list_iterator_destroy(iter);
     c_window_destroy(window);
 
     printf("goodbye\n");
