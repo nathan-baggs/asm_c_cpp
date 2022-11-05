@@ -20,7 +20,9 @@ typedef enum C_KeyState
  */
 typedef enum C_Key
 {
-    C_KEY_Q
+    C_KEY_ESCAPE,
+    C_KEY_LEFT,
+    C_KEY_RIGHT,
 } C_Key;
 
 /**

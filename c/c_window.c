@@ -26,7 +26,9 @@ static C_Result map_sdl_key(C_Key *key, SDL_Keycode sdl_code)
 {
     switch (sdl_code)
     {
-        case SDLK_q: *key = C_KEY_Q; return C_SUCCESS;
+        case SDLK_ESCAPE: *key = C_KEY_ESCAPE; return C_SUCCESS;
+        case SDLK_LEFT: *key = C_KEY_LEFT; return C_SUCCESS;
+        case SDLK_RIGHT: *key = C_KEY_RIGHT; return C_SUCCESS;
         default: return C_NO_MORE_EVENTS;
     }
 }
