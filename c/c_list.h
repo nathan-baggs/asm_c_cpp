@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <stdbool.h>
+
 #include "c_result.h"
 
 /**
@@ -117,13 +119,32 @@ void c_list_iterator_destroy(C_ListIter *iter);
 /**
  * Advance an iterator to the next node.
  *
- * Note this will set the out paramater to NULL if the end of the list is reached.
- *
- *
  * @param iter
  *   Out parameter for advanced iterator.
  */
 void c_list_iterator_advance(C_ListIter **iter);
+
+/**
+ * Reset an iterator back to the start of the list.
+ *
+ * @param list
+ *   List to reset iterator in.
+ *
+ * @param iter
+ *   Out paramater for reset iterator.
+ */
+void c_list_iterator_reset(const C_List *list, C_ListIter **iter);
+
+/**
+ * Check if an iterator is one past the end of the list.
+ *
+ * @param iter
+ *   Iterator to check.
+ *
+ * @returns
+ *   True if iterator is one past the end of the list, otherwise false.
+ */
+bool c_list_iterator_at_end(C_ListIter *iter);
 
 /**
  * Get the value the iterator is referencing.

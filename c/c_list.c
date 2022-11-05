@@ -178,8 +178,7 @@ C_Result c_list_iterator_create(const C_List *list, C_ListIter **iter)
         goto end;
     }
 
-    // the iterator starts at the first node
-    new_iter->node = list->head->next;
+    c_list_iterator_reset(list, &new_iter);
 
     // assign the iterator to the user supplied pointer
     *iter = new_iter;
@@ -198,6 +197,20 @@ void c_list_iterator_advance(C_ListIter **iter)
     assert(*iter != NULL);
 
     (*iter)->node = (*iter)->node->next;
+}
+
+void c_list_iterator_reset(const C_List *list, C_ListIter **iter)
+{
+    assert(*iter != NULL);
+
+    (*iter)->node = list->head->next;
+}
+
+bool c_list_iterator_at_end(C_ListIter *iter)
+{
+    assert(iter != NULL);
+
+    return iter->node == NULL;
 }
 
 void *c_list_iterator_value(const C_ListIter *iter)
