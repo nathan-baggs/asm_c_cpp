@@ -8,7 +8,9 @@
 
 #include <memory>
 #include <optional>
+#include <vector>
 
+#include "entity.h"
 #include "key_event.h"
 
 struct SDL_Window;
@@ -44,6 +46,14 @@ class Window
      *   A KeyEvent if an event was available, otherwise an empty optional.
      */
     std::optional<KeyEvent> get_event() const;
+
+    /**
+     * Render a collection of entities.
+     *
+     * @param entities
+     *   Entities to render.
+     */
+    void render(const std::vector<Entity> &entities) const;
 
   private:
     /** SDL window object. */

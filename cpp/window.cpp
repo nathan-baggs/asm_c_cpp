@@ -9,10 +9,12 @@
 #include <memory>
 #include <optional>
 #include <stdexcept>
-
-#include "key_event.h"
+#include <vector>
 
 #include "SDL.h"
+
+#include "entity.h"
+#include "key_event.h"
 
 namespace
 {
@@ -97,6 +99,44 @@ std::optional<KeyEvent> Window::get_event() const
     }
 
     return event;
+}
+
+void Window::render(const std::vector<Entity> &entities) const
+{
+    if (::SDL_SetRenderDrawColor(renderer_.get(), 0x0, 0x0, 0x0, 0xff) != 0)
+    {
+        throw std::runtime_error("failed to set render draw colour");
+    }
+
+    if (::SDL_RenderClear(renderer_.get()) != 0)
+    {
+        throw std::runtime_error("failed to clear renderer");
+    }
+
+    for (const auto &entity : entities)
+    {
+        const auto entity_rect = entity.rectangle();
+        const auto entity_colour = entity.colour();
+
+        const SDL_Rect sdl_rect = {
+            .x = static_cast<int>(entity_rect.position.x),
+            .y = static_cast<int>(entity_rect.position.y),
+            .w = static_cast<int>(entity_rect.width),
+            .h = static_cast<int>(entity_rect.height),
+        };
+
+        if (::SDL_SetRenderDrawColor(renderer_.get(), entity_colour.r, entity_colour.g, entity_colour.b, 0xff) != 0)
+        {
+            throw std::runtime_error("failed to draw entity");
+        }
+
+        if (::SDL_RenderFillRect(renderer_.get(), &sdl_rect) != 0)
+        {
+            throw std::runtime_error("failed to draw filled rect");
+        }
+    }
+
+    ::SDL_RenderPresent(renderer_.get());
 }
 
 }
