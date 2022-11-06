@@ -97,6 +97,99 @@ static void update_ball(Entity *ball, C_Vector2 *ball_velocity)
     {
         ball_velocity->y *= -1.0f;
     }
+
+    if ((ball->rectangle.position.x < 0.0f) || (ball->rectangle.position.x > 800.0f))
+    {
+        ball_velocity->x *= -1.0f;
+    }
+}
+
+/**
+ * Helper function to check if two entities are colliding.
+ *
+ * @param entity1
+ *   First entity to check.
+ *
+ * @param entity2
+ *   Second entity to check.
+ *
+ * @returns
+ *   True if entities collide, false otherwise.
+ */
+bool static check_collision(const Entity *entity1, const Entity *entity2)
+{
+    return (
+        (entity1->rectangle.position.x < entity2->rectangle.position.x + entity2->rectangle.width) &&
+        (entity1->rectangle.position.x + entity1->rectangle.width > entity2->rectangle.position.x) &&
+        (entity1->rectangle.position.y < entity2->rectangle.position.y + entity2->rectangle.height) &&
+        (entity1->rectangle.height + entity1->rectangle.position.y > entity2->rectangle.position.y));
+}
+
+/**
+ * Helper function to handle collisions between the ball and other entities.
+ *
+ * @param entities
+ *   List of all entities.
+ *
+ * @param ball
+ *   Ball entity.
+ *
+ * @param ball_velocity
+ *   The velocity of the ball.
+ *
+ * @param paddle
+ *   Paddle entity.
+ */
+static void handle_collisions(C_List *entities, Entity *ball, C_Vector2 *ball_velocity, const Entity *paddle)
+{
+    // keep iterator scoped so we can't use it after it's been destroyed
+    {
+        C_ListIter *iter;
+        CHECK_SUCCESS(c_list_iterator_create(entities, &iter), "could not create iterator");
+
+        // move past ball and paddle
+        c_list_iterator_advance(&iter);
+        c_list_iterator_advance(&iter);
+
+        // see if the ball intersects with any bricks
+        while (!c_list_iterator_at_end(iter))
+        {
+            Entity *block = (Entity *)c_list_iterator_value(iter);
+
+            if (check_collision(ball, block))
+            {
+                c_list_remove(entities, iter);
+                ball_velocity->y *= -1.0f;
+
+                // if we modify the list this will invalidate the iterator, so stop
+                break;
+            }
+
+            c_list_iterator_advance(&iter);
+        }
+
+        c_list_iterator_destroy(iter);
+    }
+
+    // handle ball - paddle collision
+    if (check_collision(ball, paddle))
+    {
+        if (ball->rectangle.position.x < paddle->rectangle.position.x + 6.0f)
+        {
+            ball_velocity->x = -0.7f;
+            ball_velocity->y = -0.7f;
+        }
+        else if (ball->rectangle.position.x < paddle->rectangle.position.x + 14.0f)
+        {
+            ball_velocity->x = 0.0f;
+            ball_velocity->y = -1.0f;
+        }
+        else
+        {
+            ball_velocity->x = 0.7f;
+            ball_velocity->y = -0.7f;
+        }
+    }
 }
 
 int main()
@@ -105,7 +198,7 @@ int main()
 
     Entity paddle = {
         .rectangle = c_rectangle_create_xy(300.0f, 780.0f, 300.0f, 20.0f), .r = 0xff, .g = 0xff, .b = 0xff};
-    Entity ball = {.rectangle = c_rectangle_create_xy(400.0f, 400.0f, 10.0f, 10.0f), .r = 0xff, .g = 0xff, .b = 0xff};
+    Entity ball = {.rectangle = c_rectangle_create_xy(420.0f, 400.0f, 10.0f, 10.0f), .r = 0xff, .g = 0xff, .b = 0xff};
 
     C_Vector2 paddle_velocity = c_vector2_create();
     C_Vector2 ball_velocity = c_vector2_create_xy(0.0f, 0.5f);
@@ -184,7 +277,9 @@ int main()
 
         c_vector2_add(&paddle.rectangle.position, &paddle_velocity);
         update_ball(&ball, &ball_velocity);
+        handle_collisions(entities, &ball, &ball_velocity, &paddle);
 
+        // reset iterator as we may have modified the list and we will want to start from the beginning anyway
         c_list_iterator_reset(entities, &iter);
 
         // render our scene
