@@ -1,3 +1,10 @@
 add_executable(cpp_game
     main.cpp
+    window.cpp
 )
+
+target_link_directories(cpp_game PRIVATE ${sdl_BINARY_DIR})
+target_include_directories(cpp_game PRIVATE ${sdl_SOURCE_DIR}/include)
+target_compile_features(cpp_game PRIVATE cxx_std_20)
+
+target_link_libraries(cpp_game PRIVATE SDL2d m pthread dl)
