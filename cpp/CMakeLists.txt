@@ -1,5 +1,6 @@
 add_executable(cpp_game
     main.cpp
+    rectangle.cpp
     vector2.cpp
     window.cpp
 )
