@@ -1,4 +1,5 @@
 add_executable(cpp_game
+    colour.cpp
     main.cpp
     rectangle.cpp
     vector2.cpp
