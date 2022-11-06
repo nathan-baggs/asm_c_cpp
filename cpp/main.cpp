@@ -6,9 +6,36 @@
 
 #include <iostream>
 
+#include "key_event.h"
+#include "window.h"
+
 int main()
 {
     std::cout << "hello world\n";
+
+    cpp::Window window{};
+    auto running = true;
+
+    while (running)
+    {
+        for (;;)
+        {
+            if (const auto event = window.get_event(); event)
+            {
+                using enum cpp::Key;
+                using enum cpp::KeyState;
+
+                if ((event->key_state == DOWN) && (event->key == ESCAPE))
+                {
+                    running = false;
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
 
     return 0;
 }
