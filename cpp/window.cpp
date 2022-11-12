@@ -56,7 +56,7 @@ Window::Window()
     }
 
     window_.reset(
-        ::SDL_CreateWindow("c_game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 800, SDL_WINDOW_SHOWN));
+        ::SDL_CreateWindow("cpp_game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 800, SDL_WINDOW_SHOWN));
     if (!window_)
     {
         throw std::runtime_error("failed to create window");
