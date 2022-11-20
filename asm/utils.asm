@@ -100,7 +100,7 @@ write_loop_end:
     add rdi, 0xa ; set destination to start of second buffer
 
 reverse_loop_start:
-    cmp rcx, 0x
+    cmp rcx, 0x0
     je reverse_loop_end
 
     movzx rax, byte[rsi]
