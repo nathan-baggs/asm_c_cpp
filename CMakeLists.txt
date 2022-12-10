@@ -4,7 +4,7 @@ project(
   asm_c_cpp
   VERSION "0.1.0"
   DESCRIPTION "A game made in three languages"
-  LANGUAGES ASM C CXX)
+  LANGUAGES C CXX ASM)
 
 include(FetchContent)
 
