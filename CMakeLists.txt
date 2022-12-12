@@ -4,7 +4,7 @@ project(
   asm_c_cpp
   VERSION "0.1.0"
   DESCRIPTION "A game made in three languages"
-  LANGUAGES ASM C CXX)
+  LANGUAGES C CXX ASM)
 
 include(FetchContent)
 
@@ -17,6 +17,9 @@ FetchContent_Declare(
   GIT_TAG release-2.24.2)
 FetchContent_MakeAvailable(sdl)
 
-add_subdirectory(asm)
+if (UNIX AND CMAKE_SYSTEM_PROCESSOR MATCHES x86_64)
+	#The asm version uses X Windows calls
+	add_subdirectory(asm)
+endif()
 add_subdirectory(c)
 add_subdirectory(cpp)
